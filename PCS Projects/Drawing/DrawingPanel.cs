@@ -12,10 +12,13 @@ namespace Drawing
     internal class DrawingPanel : Panel
     {
         List<DrawingPart> drawParts = new List<DrawingPart>();
+        List<Color> drawColors = new List<Color>();
+        List<int> drawThicknesses = new List<int>();
         DrawingPart currentDrawingPart;
         bool clicked;
-        int colnum;
-        Color Color = Color.Black;
+        int thickness = 2;
+        int colrnum;
+        Color ColorPicked = Color.Black;
         Color[] Colors = {Color.Blue, Color.Green,Color.Red,Color.Yellow,Color.Purple,Color.Black};
         
         protected override void OnMouseDown(MouseEventArgs e)
@@ -25,9 +28,9 @@ namespace Drawing
             //int y1 = e.Y;
             if (e.Button == MouseButtons.Right)
             {
-                if (colnum == Colors.Length)
-                    colnum = 0;
-                Color = Colors[colnum++];
+                if (colrnum == Colors.Length)
+                    colrnum = 0;
+                ColorPicked = Colors[colrnum++];
             }
             else
             {
@@ -35,6 +38,8 @@ namespace Drawing
                 drawParts.Add(currentDrawingPart);
                 currentDrawingPart.AddPoint(e.X, e.Y);
                 clicked = true;
+                drawColors.Add(ColorPicked);
+                drawThicknesses.Add(thickness);
             }
             
             
@@ -49,8 +54,12 @@ namespace Drawing
             {
                 for (int i = 0; i < drawParts.Count - 1; i++)
                 {
-                    Draw(drawParts[i],e);
+                    ColorPicked = drawColors[i];
+                    thickness = drawThicknesses[i];
+                    Draw(drawParts[i], e);
                 }
+                ColorPicked = drawColors.Last();
+                thickness = drawThicknesses.Last();
                 Draw(currentDrawingPart, e);
             }
             
@@ -58,27 +67,31 @@ namespace Drawing
         }
         private void Draw(DrawingPart line,PaintEventArgs e) {
             //Random rand = new Random();
-            for (int j = 0; j < currentDrawingPart.points.Count - 2; j++)
+            
+            
+            for (int j = 0; j < line.points.Count - 2; j++)
             {
                 //int r = rand.Next(256);
                 //int g = rand.Next(256);
                 //int b = rand.Next(256);
                 //Color c = Color.FromArgb(r, g, b);
 
-                DrawingPart current = currentDrawingPart;
-                int x1 = current.points[j].X;
-                int y1 = current.points[j].Y;
-                int x2 = current.points[j + 1].X;
-                int y2 = current.points[j + 1].Y;
+                
+                int x1 = line.points[j].X;
+                int y1 = line.points[j].Y;
+                int x2 = line.points[j + 1].X;
+                int y2 = line.points[j + 1].Y;
                 Graphics gr = e.Graphics;
-                gr.DrawLine(new Pen(Color, 2), x1, y1, x2, y2);
+                gr.DrawLine(new Pen(ColorPicked, thickness), x1, y1, x2, y2);
             }
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
             clicked = false;
+            currentDrawingPart.AddPoint(e.X, e.Y);
             
+
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -88,6 +101,13 @@ namespace Drawing
                 currentDrawingPart.AddPoint(e.X, e.Y);
                 Invalidate();
             }
+        }
+        protected override void OnDoubleClick(EventArgs e)
+        {
+            base.OnDoubleClick(e);
+            thickness += 2;
+            if (thickness > 11) thickness = 2;
+
         }
     }
 }
